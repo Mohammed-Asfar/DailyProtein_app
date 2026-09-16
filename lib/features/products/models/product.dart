@@ -30,6 +30,9 @@ class Product {
     required this.protein,
     this.calories,
     this.price,
+    this.categoryId,
+    this.imagePath,
+    this.emoji,
     required this.createdAt,
   });
 
@@ -49,6 +52,18 @@ class Product {
 
   /// Price per unit or per 100 g. Null when the user skipped it.
   final double? price;
+
+  /// Category this product belongs to, null when uncategorised.
+  final int? categoryId;
+
+  /// Absolute path to a photo in the app's own storage, null when none was
+  /// chosen. Files outside app storage are not referenced, so a photo cannot
+  /// vanish from under the app.
+  final String? imagePath;
+
+  /// A food emoji shown when there is no photo. Comes from the starter
+  /// catalogue, or from whatever the user picks.
+  final String? emoji;
 
   final DateTime createdAt;
 
@@ -82,6 +97,9 @@ class Product {
     double? protein,
     double? Function()? calories,
     double? Function()? price,
+    int? Function()? categoryId,
+    String? Function()? imagePath,
+    String? Function()? emoji,
     DateTime? createdAt,
   }) {
     return Product(
@@ -92,6 +110,9 @@ class Product {
       protein: protein ?? this.protein,
       calories: calories != null ? calories() : this.calories,
       price: price != null ? price() : this.price,
+      categoryId: categoryId != null ? categoryId() : this.categoryId,
+      imagePath: imagePath != null ? imagePath() : this.imagePath,
+      emoji: emoji != null ? emoji() : this.emoji,
       createdAt: createdAt ?? this.createdAt,
     );
   }
@@ -104,6 +125,9 @@ class Product {
         'protein': protein,
         'calories': calories,
         'price': price,
+        'category_id': categoryId,
+        'image_path': imagePath,
+        'emoji': emoji,
         'created_at': createdAt.millisecondsSinceEpoch,
       };
 
@@ -115,6 +139,9 @@ class Product {
         protein: (map['protein'] as num).toDouble(),
         calories: (map['calories'] as num?)?.toDouble(),
         price: (map['price'] as num?)?.toDouble(),
+        categoryId: map['category_id'] as int?,
+        imagePath: map['image_path'] as String?,
+        emoji: map['emoji'] as String?,
         createdAt: DateTime.fromMillisecondsSinceEpoch(
           map['created_at'] as int,
         ),
