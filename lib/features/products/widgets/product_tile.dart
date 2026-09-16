@@ -3,7 +3,9 @@ import 'package:flutter/material.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../core/widgets/app_card.dart';
+import '../models/category.dart';
 import '../models/product.dart';
+import 'product_image.dart';
 
 /// One row in the product catalogue.
 class ProductTile extends StatelessWidget {
@@ -11,12 +13,14 @@ class ProductTile extends StatelessWidget {
     super.key,
     required this.product,
     required this.currencySymbol,
+    this.category,
     this.onTap,
     this.trailing,
   });
 
   final Product product;
   final String currencySymbol;
+  final Category? category;
   final VoidCallback? onTap;
   final Widget? trailing;
 
@@ -32,22 +36,7 @@ class ProductTile extends StatelessWidget {
       padding: const EdgeInsets.all(AppSpacing.md),
       child: Row(
         children: <Widget>[
-          Container(
-            height: 44,
-            width: 44,
-            decoration: BoxDecoration(
-              color: theme.colorScheme.primary.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
-            ),
-            alignment: Alignment.center,
-            child: Text(
-              Fmt.number(product.protein, decimals: 0),
-              style: theme.textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.w800,
-                color: theme.colorScheme.primary,
-              ),
-            ),
-          ),
+          ProductImage(product: product, category: category),
           const SizedBox(width: AppSpacing.md),
           Expanded(
             child: Column(

@@ -31,7 +31,7 @@ class FloatingNavBar extends StatelessWidget {
     required this.currentIndex,
     required this.onSelected,
     this.onCenterPressed,
-    this.centerIcon = Icons.add,
+    this.centerIcon = Icons.add_rounded,
     this.centerTooltip,
   });
 

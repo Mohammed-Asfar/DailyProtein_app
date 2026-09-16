@@ -1,6 +1,9 @@
-import 'package:flutter/foundation.dart';
+// foundation.dart also exports a Category annotation, which would clash.
+import 'package:flutter/widgets.dart' show ChangeNotifier;
 
+import '../models/category.dart';
 import '../models/product.dart';
+import 'starter_foods.dart';
 import 'product_repository.dart';
 
 /// Holds the product catalogue so every screen sees the same list.
@@ -22,6 +25,24 @@ class ProductController extends ChangeNotifier {
     notifyListeners();
     _products = await _repository.all();
     _loading = false;
+    notifyListeners();
+  }
+
+  /// Fills an empty catalogue with the starter foods, so the app is usable
+  /// on first launch without setting anything up. They are ordinary
+  /// products once added: editable, deletable, and never re-seeded.
+  Future<void> seedIfEmpty(List<Category> categories) async {
+    if (_products.isNotEmpty) return;
+
+    final Map<String, int?> byName = <String, int?>{
+      for (final Category c in categories) c.name: c.id,
+    };
+    for (final StarterFood food in StarterFood.all) {
+      await _repository.insert(
+        food.toProduct(categoryId: byName[food.categoryName]),
+      );
+    }
+    _products = await _repository.all();
     notifyListeners();
   }
 

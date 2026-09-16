@@ -7,6 +7,7 @@ import 'features/history/screens/history_screen.dart';
 import 'features/home/screens/home_screen.dart';
 import 'features/log/data/log_controller.dart';
 import 'features/log/screens/add_food_sheet.dart';
+import 'features/products/data/category_controller.dart';
 import 'features/products/data/product_controller.dart';
 import 'features/products/screens/products_screen.dart';
 import 'features/settings/data/settings_controller.dart';
@@ -77,22 +78,22 @@ class _AppShellState extends State<AppShell> {
         items: const <NavItem>[
           NavItem(
             icon: Icons.today_outlined,
-            selectedIcon: Icons.today,
+            selectedIcon: Icons.today_rounded,
             label: 'Today',
           ),
           NavItem(
             icon: Icons.insights_outlined,
-            selectedIcon: Icons.insights,
+            selectedIcon: Icons.insights_rounded,
             label: 'History',
           ),
           NavItem(
             icon: Icons.inventory_2_outlined,
-            selectedIcon: Icons.inventory_2,
+            selectedIcon: Icons.inventory_2_rounded,
             label: 'Products',
           ),
           NavItem(
             icon: Icons.settings_outlined,
-            selectedIcon: Icons.settings,
+            selectedIcon: Icons.settings_rounded,
             label: 'Settings',
           ),
         ],
@@ -122,10 +123,16 @@ class _AppBootstrapState extends State<AppBootstrap> {
     // Read every controller up front so no lookup happens after an await.
     final SettingsController settings = context.read<SettingsController>();
     final ProductController products = context.read<ProductController>();
+    final CategoryController categories = context.read<CategoryController>();
     final LogController log = context.read<LogController>();
 
     await settings.load();
+    await categories.load();
     await products.load();
+    // First launch only: an empty catalogue gets the common foods so there
+    // is something to log straight away.
+    await products.seedIfEmpty(categories.categories);
+    await categories.refreshCounts();
     await log.load();
   }
 

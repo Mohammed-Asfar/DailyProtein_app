@@ -5,6 +5,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:sqflite/sqflite.dart';
 
 import '../../../core/database/app_database.dart';
+import '../../../core/services/image_store.dart';
 import '../../../core/utils/date_utils.dart';
 import '../../log/models/food_entry.dart';
 import '../../products/models/product.dart';
@@ -34,7 +35,7 @@ class BackupService {
   final AppDatabase _database;
 
   static const String _formatTag = 'daily_protein_backup';
-  static const int _formatVersion = 1;
+  static const int _formatVersion = 2;
 
   /// Opens the system save dialog and writes a JSON backup to the chosen
   /// location.
@@ -45,12 +46,25 @@ class BackupService {
           await db.query(AppDatabase.tableProducts);
       final List<Map<String, Object?>> entries =
           await db.query(AppDatabase.tableEntries);
+      final List<Map<String, Object?>> categories =
+          await db.query(AppDatabase.tableCategories);
+
+      // Photos live on disk, not in the database, and are not portable to
+      // another device. They are dropped from the backup rather than
+      // exported as broken paths; everything else restores intact.
+      final List<Map<String, Object?>> portableProducts = products
+          .map((Map<String, Object?> row) => <String, Object?>{
+                ...row,
+                'image_path': null,
+              })
+          .toList();
 
       final Map<String, Object?> payload = <String, Object?>{
         'format': _formatTag,
         'version': _formatVersion,
         'exported_at': DateTime.now().toIso8601String(),
-        'products': products,
+        'categories': categories,
+        'products': portableProducts,
         'entries': entries,
       };
 
@@ -100,11 +114,21 @@ class BackupService {
           (decoded['products'] as List<Object?>?) ?? <Object?>[];
       final List<Object?> entries =
           (decoded['entries'] as List<Object?>?) ?? <Object?>[];
+      // Absent in version 1 backups, which predate categories.
+      final List<Object?> categories =
+          (decoded['categories'] as List<Object?>?) ?? <Object?>[];
 
       final Database db = await _database.database;
       await db.transaction((Transaction txn) async {
         await txn.delete(AppDatabase.tableEntries);
         await txn.delete(AppDatabase.tableProducts);
+        if (categories.isNotEmpty) {
+          await txn.delete(AppDatabase.tableCategories);
+          for (final Object? row in categories) {
+            if (row is! Map<String, Object?>) continue;
+            await txn.insert(AppDatabase.tableCategories, row);
+          }
+        }
 
         for (final Object? row in products) {
           if (row is! Map<String, Object?>) continue;
@@ -136,6 +160,19 @@ class BackupService {
 
   Future<BackupResult> clearAllData() async {
     try {
+      // Photos are files, so clearing the tables alone would leave them
+      // orphaned on disk for good.
+      final Database db = await _database.database;
+      final List<Map<String, Object?>> rows = await db.query(
+        AppDatabase.tableProducts,
+        columns: <String>['image_path'],
+        where: 'image_path IS NOT NULL',
+      );
+      final ImageStore store = ImageStore();
+      for (final Map<String, Object?> row in rows) {
+        await store.delete(row['image_path'] as String?);
+      }
+
       await _database.clearAll();
       return const BackupResult.success('All data cleared');
     } on Object catch (error) {

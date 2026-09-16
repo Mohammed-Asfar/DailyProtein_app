@@ -6,22 +6,22 @@ import 'package:flutter_test/flutter_test.dart';
 const List<NavItem> _items = <NavItem>[
   NavItem(
     icon: Icons.today_outlined,
-    selectedIcon: Icons.today,
+    selectedIcon: Icons.today_rounded,
     label: 'Today',
   ),
   NavItem(
     icon: Icons.insights_outlined,
-    selectedIcon: Icons.insights,
+    selectedIcon: Icons.insights_rounded,
     label: 'History',
   ),
   NavItem(
     icon: Icons.inventory_2_outlined,
-    selectedIcon: Icons.inventory_2,
+    selectedIcon: Icons.inventory_2_rounded,
     label: 'Products',
   ),
   NavItem(
     icon: Icons.settings_outlined,
-    selectedIcon: Icons.settings,
+    selectedIcon: Icons.settings_rounded,
     label: 'Settings',
   ),
 ];
@@ -60,7 +60,7 @@ void main() {
     for (final NavItem item in _items) {
       expect(find.text(item.label), findsOneWidget);
     }
-    expect(find.byIcon(Icons.add), findsOneWidget);
+    expect(find.byIcon(Icons.add_rounded), findsOneWidget);
   });
 
   testWidgets('tapping a tab reports its index', (WidgetTester tester) async {
@@ -80,7 +80,7 @@ void main() {
     int presses = 0;
     await tester.pumpWidget(_harness(onCenterPressed: () => presses++));
 
-    await tester.tap(find.byIcon(Icons.add));
+    await tester.tap(find.byIcon(Icons.add_rounded));
     expect(presses, 1);
   });
 
@@ -89,7 +89,7 @@ void main() {
   ) async {
     await tester.pumpWidget(_harness(currentIndex: 2));
 
-    expect(find.byIcon(Icons.inventory_2), findsOneWidget);
+    expect(find.byIcon(Icons.inventory_2_rounded), findsOneWidget);
     expect(find.byIcon(Icons.inventory_2_outlined), findsNothing);
     expect(find.byIcon(Icons.today_outlined), findsOneWidget);
   });
@@ -116,7 +116,7 @@ void main() {
   ) async {
     await tester.pumpWidget(_harness());
 
-    final Rect button = tester.getRect(find.byIcon(Icons.add));
+    final Rect button = tester.getRect(find.byIcon(Icons.add_rounded));
     final Rect firstLabel = tester.getRect(find.text('Today'));
 
     // The button should sit higher than the tab labels, which is what makes
@@ -141,7 +141,7 @@ void main() {
     final Rect circle = tester.getRect(
       find
           .ancestor(
-            of: find.byIcon(Icons.add),
+            of: find.byIcon(Icons.add_rounded),
             matching: find.byType(Container),
           )
           .last,
@@ -166,7 +166,7 @@ void main() {
     testWidgets('the button is not rendered', (WidgetTester tester) async {
       await tester.pumpWidget(_harness(showCenter: false));
 
-      expect(find.byIcon(Icons.add), findsNothing);
+      expect(find.byIcon(Icons.add_rounded), findsNothing);
       for (final NavItem item in _items) {
         expect(find.text(item.label), findsOneWidget);
       }

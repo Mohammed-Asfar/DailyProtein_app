@@ -83,22 +83,40 @@ class _HistoryScreenState extends State<HistoryScreen> {
     });
   }
 
+  /// Asks for a start date then an end date, each in an ordinary calendar
+  /// dialog. [showDateRangePicker] would cover the whole screen for what is
+  /// a two-tap decision.
   Future<void> _pickCustomRange() async {
     final DateTime now = DateTime.now();
-    final DateTimeRange? picked = await showDateRangePicker(
+    final DateTime earliest = DateTime(2020);
+    final DateTimeRange initial = _customRange ??
+        DateTimeRange(
+          start: now.subtract(Duration(days: _rangeDays - 1)),
+          end: now,
+        );
+
+    final DateTime? start = await showDatePicker(
       context: context,
-      firstDate: DateTime(2020),
+      initialDate: initial.start,
+      firstDate: earliest,
       lastDate: now,
-      initialDateRange: _customRange ??
-          DateTimeRange(
-            start: now.subtract(Duration(days: _rangeDays - 1)),
-            end: now,
-          ),
-      helpText: 'Select a date range',
+      helpText: 'Start date',
     );
-    if (picked == null) return;
+    if (start == null || !mounted) return;
+
+    final DateTime? end = await showDatePicker(
+      context: context,
+      // The end cannot precede the start, so the second calendar opens on
+      // the start date and will not go back past it.
+      initialDate: initial.end.isBefore(start) ? start : initial.end,
+      firstDate: start,
+      lastDate: now,
+      helpText: 'End date',
+    );
+    if (end == null || !mounted) return;
+
     setState(() {
-      _customRange = picked;
+      _customRange = DateTimeRange(start: start, end: end);
       _future = _load();
     });
   }

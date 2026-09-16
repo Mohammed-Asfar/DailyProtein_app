@@ -41,6 +41,31 @@ class AppColors {
   static const Color darkAccentText = darkAccent;
   static const Color lightAccentText = Color(0xFF9A5D07);
 
+  // ---- Row icons ------------------------------------------------------
+  /// Per-row icon tints for list screens. A single accent across every row
+  /// reads as a wall of one colour; these give each row its own mark.
+  ///
+  /// Each has a light and a dark variant. The bright shades that work on a
+  /// dark ground only reach about 2:1 against their own tint on white, so
+  /// light mode uses deeper ones. Resolved via [AppIconColors] on the theme.
+  static const Color iconFlameDark = Color(0xFFF97316);
+  static const Color iconFlameLight = Color(0xFFC2410C);
+
+  static const Color iconChartDark = Color(0xFF3B82F6);
+  static const Color iconChartLight = Color(0xFF2563EB);
+
+  static const Color iconLeafDark = Color(0xFF22C55E);
+  static const Color iconLeafLight = Color(0xFF15803D);
+
+  static const Color iconVioletDark = Color(0xFF8B5CF6);
+  static const Color iconVioletLight = Color(0xFF7C3AED);
+
+  static const Color iconAmberDark = Color(0xFFF59E0B);
+  static const Color iconAmberLight = Color(0xFFB45309);
+
+  static const Color iconCyanDark = Color(0xFF06B6D4);
+  static const Color iconCyanLight = Color(0xFF0E7490);
+
   // ---- Semantic -------------------------------------------------------
   static const Color success = Color(0xFF2E9E5B);
   static const Color danger = Color(0xFFD2544B);
@@ -60,4 +85,27 @@ class AppColors {
     Color(0xFF8FBF9F),
     Color(0xFF3E7C76),
   ];
+}
+
+/// Theme-resolved row icon colours, so screens ask for "the flame colour"
+/// and get the variant that reads on the current background.
+class AppIconColors {
+  const AppIconColors._(this.isDark);
+
+  factory AppIconColors.of(BuildContext context) =>
+      AppIconColors._(Theme.of(context).brightness == Brightness.dark);
+
+  final bool isDark;
+
+  Color get flame =>
+      isDark ? AppColors.iconFlameDark : AppColors.iconFlameLight;
+  Color get chart =>
+      isDark ? AppColors.iconChartDark : AppColors.iconChartLight;
+  Color get leaf => isDark ? AppColors.iconLeafDark : AppColors.iconLeafLight;
+  Color get violet =>
+      isDark ? AppColors.iconVioletDark : AppColors.iconVioletLight;
+  Color get amber =>
+      isDark ? AppColors.iconAmberDark : AppColors.iconAmberLight;
+  Color get cyan => isDark ? AppColors.iconCyanDark : AppColors.iconCyanLight;
+  Color get danger => AppColors.danger;
 }

@@ -1,6 +1,7 @@
 import 'package:daily_protein/app.dart';
 import 'package:daily_protein/core/widgets/floating_nav_bar.dart';
 import 'package:daily_protein/features/log/data/log_controller.dart';
+import 'package:daily_protein/features/products/data/category_controller.dart';
 import 'package:daily_protein/features/products/data/product_controller.dart';
 import 'package:daily_protein/features/settings/data/settings_controller.dart';
 import 'package:flutter/material.dart';
@@ -10,6 +11,11 @@ import 'package:provider/provider.dart';
 /// Controllers that report as loaded and empty without touching sqflite,
 /// which is unavailable in a plain widget test.
 class _FakeProducts extends ProductController {
+  @override
+  Future<void> load() async {}
+}
+
+class _FakeCategories extends CategoryController {
   @override
   Future<void> load() async {}
 }
@@ -33,6 +39,9 @@ Widget _shell() {
       ChangeNotifierProvider<ProductController>(
         create: (_) => _FakeProducts(),
       ),
+      ChangeNotifierProvider<CategoryController>(
+        create: (_) => _FakeCategories(),
+      ),
       ChangeNotifierProvider<LogController>(create: (_) => _FakeLog()),
     ],
     child: const DailyProteinApp(),
@@ -43,7 +52,7 @@ Widget _shell() {
 /// because the Products screen has its own unrelated `+` in the app bar.
 final Finder _navAddButton = find.descendant(
   of: find.byType(FloatingNavBar),
-  matching: find.byIcon(Icons.add),
+  matching: find.byIcon(Icons.add_rounded),
 );
 
 void main() {

@@ -4,8 +4,8 @@ import 'package:provider/provider.dart';
 
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/utils/formatters.dart';
-import '../../../core/widgets/app_card.dart';
-import '../../../core/widgets/section_header.dart';
+import '../../../core/theme/app_colors.dart';
+import '../../../core/widgets/settings_row.dart';
 import '../../log/data/log_controller.dart';
 import '../../products/data/product_controller.dart';
 import '../data/backup_service.dart';
@@ -16,26 +16,41 @@ class SettingsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final ThemeData theme = Theme.of(context);
     final SettingsController settings = context.watch<SettingsController>();
+    final AppIconColors icons = AppIconColors.of(context);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Settings')),
-      body: ListView(
-        padding: const EdgeInsets.fromLTRB(
-          AppSpacing.lg,
-          0,
-          AppSpacing.lg,
-          AppSpacing.navBarClearance,
-        ),
-        children: <Widget>[
-          const SectionHeader(title: 'Daily goals'),
-          AppCard(
-            padding: EdgeInsets.zero,
-            child: Column(
-              children: <Widget>[
-                _GoalRow(
-                  icon: Icons.fitness_center,
-                  title: 'Protein goal',
+      body: SafeArea(
+        bottom: false,
+        child: ListView(
+          padding: const EdgeInsets.fromLTRB(
+            AppSpacing.lg,
+            AppSpacing.lg,
+            AppSpacing.lg,
+            AppSpacing.navBarClearance,
+          ),
+          children: <Widget>[
+            Text(
+              'Settings',
+              style: theme.textTheme.headlineMedium?.copyWith(
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+            Text(
+              'Personalise your targets and data',
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+            const SizedBox(height: AppSpacing.xl),
+            SettingsGroup(
+              title: 'Goals & Preferences',
+              rows: <Widget>[
+                SettingsRow(
+                  icon: Icons.fitness_center_rounded,
+                  iconColor: icons.flame,
+                  title: 'Daily Protein Goal',
                   value: Fmt.grams(settings.proteinGoal),
                   onTap: () => _editNumber(
                     context,
@@ -45,10 +60,10 @@ class SettingsScreen extends StatelessWidget {
                     onSave: settings.setProteinGoal,
                   ),
                 ),
-                const Divider(height: 1),
-                _GoalRow(
-                  icon: Icons.local_fire_department_outlined,
-                  title: 'Calorie goal',
+                SettingsRow(
+                  icon: Icons.local_fire_department_rounded,
+                  iconColor: icons.amber,
+                  title: 'Daily Calorie Goal',
                   value: Fmt.kcal(settings.calorieGoal),
                   onTap: () => _editNumber(
                     context,
@@ -58,85 +73,82 @@ class SettingsScreen extends StatelessWidget {
                     onSave: settings.setCalorieGoal,
                   ),
                 ),
-                const Divider(height: 1),
-                _GoalRow(
-                  icon: Icons.attach_money,
-                  title: 'Currency symbol',
+                SettingsRow(
+                  icon: Icons.payments_rounded,
+                  iconColor: icons.leaf,
+                  title: 'Currency',
                   value: settings.currencySymbol,
                   onTap: () => _editCurrency(context, settings),
                 ),
               ],
             ),
-          ),
-          const SizedBox(height: AppSpacing.xl),
-          const SectionHeader(title: 'Appearance'),
-          AppCard(
-            child: RadioGroup<ThemeMode>(
-              groupValue: settings.themeMode,
-              onChanged: (ThemeMode? selected) {
-                if (selected != null) settings.setThemeMode(selected);
-              },
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
-                  for (final ThemeMode mode in ThemeMode.values)
-                    RadioListTile<ThemeMode>(
-                      contentPadding: EdgeInsets.zero,
-                      dense: true,
-                      value: mode,
-                      title: Text(_themeLabel(mode)),
-                      secondary: Icon(_themeIcon(mode)),
-                    ),
-                ],
-              ),
+            const SizedBox(height: AppSpacing.xl),
+            SettingsGroup(
+              title: 'App Settings',
+              rows: <Widget>[
+                SettingsRow(
+                  icon: _themeIcon(settings.themeMode),
+                  iconColor: icons.violet,
+                  title: 'Appearance',
+                  value: _themeLabel(settings.themeMode),
+                  onTap: () => _editTheme(context, settings),
+                ),
+              ],
             ),
-          ),
-          const SizedBox(height: AppSpacing.xl),
-          const SectionHeader(title: 'Backup'),
-          AppCard(
-            padding: EdgeInsets.zero,
-            child: Column(
-              children: <Widget>[
-                _ActionRow(
-                  icon: Icons.upload_file,
-                  title: 'Export data',
-                  subtitle: 'Save all products and logs as a JSON file',
+            const SizedBox(height: AppSpacing.xl),
+            SettingsGroup(
+              title: 'Data & Privacy',
+              rows: <Widget>[
+                SettingsRow(
+                  icon: Icons.ios_share_rounded,
+                  iconColor: icons.chart,
+                  title: 'Export Data',
+                  subtitle: 'Save products and logs as a JSON file',
                   onTap: () => _runBackup(
                     context,
                     () => BackupService().exportToFile(),
                   ),
                 ),
-                const Divider(height: 1),
-                _ActionRow(
-                  icon: Icons.download,
-                  title: 'Import data',
+                SettingsRow(
+                  icon: Icons.download_rounded,
+                  iconColor: icons.cyan,
+                  title: 'Import Data',
                   subtitle: 'Replace everything with a backup file',
                   onTap: () => _confirmImport(context),
                 ),
+                SettingsRow(
+                  icon: Icons.delete_outline_rounded,
+                  iconColor: icons.danger,
+                  title: 'Clear All Data',
+                  subtitle: 'Delete every product and log on this device',
+                  destructive: true,
+                  onTap: () => _confirmClear(context),
+                ),
               ],
             ),
-          ),
-          const SizedBox(height: AppSpacing.xl),
-          const SectionHeader(title: 'Danger zone'),
-          AppCard(
-            child: _ActionRow(
-              icon: Icons.delete_forever_outlined,
-              title: 'Clear all data',
-              subtitle: 'Delete every product and log on this device',
-              destructive: true,
-              onTap: () => _confirmClear(context),
-            ),
-          ),
-          const SizedBox(height: AppSpacing.xxl),
-          Center(
-            child: Text(
-              'Daily Protein',
-              style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+            const SizedBox(height: AppSpacing.xxl),
+            Center(
+              child: Column(
+                children: <Widget>[
+                  Text(
+                    'Daily Protein',
+                    style: theme.textTheme.labelLarge?.copyWith(
+                      fontWeight: FontWeight.w700,
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
                   ),
+                  const SizedBox(height: 2),
+                  Text(
+                    'Version 1.0.0',
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -152,6 +164,34 @@ class SettingsScreen extends StatelessWidget {
         ThemeMode.light => Icons.light_mode_outlined,
         ThemeMode.dark => Icons.dark_mode_outlined,
       };
+
+  /// Appearance is now a row rather than an inline radio list, so the
+  /// choice moves into a small dialog.
+  Future<void> _editTheme(
+    BuildContext context,
+    SettingsController settings,
+  ) async {
+    final ThemeMode? picked = await showDialog<ThemeMode>(
+      context: context,
+      builder: (BuildContext context) => SimpleDialog(
+        title: const Text('Appearance'),
+        children: <Widget>[
+          for (final ThemeMode mode in ThemeMode.values)
+            RadioListTile<ThemeMode>(
+              value: mode,
+              // ignore: deprecated_member_use
+              groupValue: settings.themeMode,
+              // ignore: deprecated_member_use
+              onChanged: (ThemeMode? selected) =>
+                  Navigator.of(context).pop(selected),
+              title: Text(_themeLabel(mode)),
+              secondary: Icon(_themeIcon(mode)),
+            ),
+        ],
+      ),
+    );
+    if (picked != null) settings.setThemeMode(picked);
+  }
 
   Future<void> _editNumber(
     BuildContext context, {
@@ -300,74 +340,5 @@ class SettingsScreen extends StatelessWidget {
 
     messenger.hideCurrentSnackBar();
     messenger.showSnackBar(SnackBar(content: Text(result.message)));
-  }
-}
-
-class _GoalRow extends StatelessWidget {
-  const _GoalRow({
-    required this.icon,
-    required this.title,
-    required this.value,
-    required this.onTap,
-  });
-
-  final IconData icon;
-  final String title;
-  final String value;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final ThemeData theme = Theme.of(context);
-    return ListTile(
-      onTap: onTap,
-      leading: Icon(icon, color: theme.colorScheme.primary),
-      title: Text(title),
-      trailing: Text(
-        value,
-        style: theme.textTheme.titleSmall?.copyWith(
-          fontWeight: FontWeight.w700,
-          color: theme.colorScheme.primary,
-        ),
-      ),
-    );
-  }
-}
-
-class _ActionRow extends StatelessWidget {
-  const _ActionRow({
-    required this.icon,
-    required this.title,
-    required this.subtitle,
-    required this.onTap,
-    this.destructive = false,
-  });
-
-  final IconData icon;
-  final String title;
-  final String subtitle;
-  final VoidCallback onTap;
-  final bool destructive;
-
-  @override
-  Widget build(BuildContext context) {
-    final ThemeData theme = Theme.of(context);
-    final Color color =
-        destructive ? theme.colorScheme.error : theme.colorScheme.primary;
-    return ListTile(
-      onTap: onTap,
-      leading: Icon(icon, color: color),
-      title: Text(
-        title,
-        style: destructive ? TextStyle(color: color) : null,
-      ),
-      subtitle: Text(
-        subtitle,
-        style: theme.textTheme.bodySmall?.copyWith(
-          color: theme.colorScheme.onSurfaceVariant,
-        ),
-      ),
-      isThreeLine: false,
-    );
   }
 }
