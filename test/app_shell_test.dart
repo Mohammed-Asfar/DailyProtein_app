@@ -28,6 +28,11 @@ class _FakeLog extends LogController {
 class _FakeSettings extends SettingsController {
   @override
   Future<void> load() async {}
+
+  // This suite exercises the shell, which only appears once onboarding is
+  // behind the user. Without this the app shows the welcome flow instead.
+  @override
+  bool get hasOnboarded => true;
 }
 
 Widget _shell() {

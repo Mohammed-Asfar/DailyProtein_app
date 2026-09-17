@@ -8,6 +8,7 @@ import 'features/history/screens/history_screen.dart';
 import 'features/home/screens/home_screen.dart';
 import 'features/log/data/log_controller.dart';
 import 'features/log/screens/add_food_sheet.dart';
+import 'features/onboarding/screens/onboarding_flow.dart';
 import 'features/products/data/category_controller.dart';
 import 'features/products/data/product_controller.dart';
 import 'features/products/screens/products_screen.dart';
@@ -28,7 +29,12 @@ class DailyProteinApp extends StatelessWidget {
       theme: AppTheme.light,
       darkTheme: AppTheme.dark,
       themeMode: settings.themeMode,
-      home: const AppShell(),
+      // The welcome flow is the home screen until it is done, rather
+      // than a route pushed over the shell: the shell must not build
+      // behind it and start its update check on first launch.
+      home: settings.hasOnboarded
+          ? const AppShell()
+          : const OnboardingFlow(),
     );
   }
 }
