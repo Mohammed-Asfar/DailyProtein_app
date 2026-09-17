@@ -14,12 +14,14 @@ class SettingsController extends ChangeNotifier {
   double _proteinGoal = SettingsRepository.defaultGoal;
   double _calorieGoal = SettingsRepository.defaultCalorieGoal;
   String _currencySymbol = SettingsRepository.defaultCurrency;
+  bool _checkForUpdates = SettingsRepository.defaultCheckForUpdates;
   bool _loaded = false;
 
   ThemeMode get themeMode => _themeMode;
   double get proteinGoal => _proteinGoal;
   double get calorieGoal => _calorieGoal;
   String get currencySymbol => _currencySymbol;
+  bool get checkForUpdates => _checkForUpdates;
   bool get isLoaded => _loaded;
 
   Future<void> load() async {
@@ -27,6 +29,7 @@ class SettingsController extends ChangeNotifier {
     _proteinGoal = await _repository.proteinGoal();
     _calorieGoal = await _repository.calorieGoal();
     _currencySymbol = await _repository.currencySymbol();
+    _checkForUpdates = await _repository.checkForUpdates();
     _loaded = true;
     notifyListeners();
   }
@@ -54,5 +57,12 @@ class SettingsController extends ChangeNotifier {
     _currencySymbol = value;
     notifyListeners();
     await _repository.setCurrencySymbol(value);
+  }
+
+  Future<void> setCheckForUpdates(bool value) async {
+    if (value == _checkForUpdates) return;
+    _checkForUpdates = value;
+    notifyListeners();
+    await _repository.setCheckForUpdates(value);
   }
 }

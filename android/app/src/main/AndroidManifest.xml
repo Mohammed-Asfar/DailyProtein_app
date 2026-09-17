@@ -1,4 +1,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Used only to check GitHub Releases for a newer build. All
+         tracking data stays on the device. -->
+    <uses-permission android:name="android.permission.INTERNET" />
+
     <application
         android:label="Daily Protein"
         android:name="${applicationName}"

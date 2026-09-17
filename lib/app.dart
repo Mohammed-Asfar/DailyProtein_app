@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import 'core/services/update_service.dart';
 import 'core/theme/app_theme.dart';
 import 'core/widgets/floating_nav_bar.dart';
 import 'features/history/screens/history_screen.dart';
@@ -12,6 +13,7 @@ import 'features/products/data/product_controller.dart';
 import 'features/products/screens/products_screen.dart';
 import 'features/settings/data/settings_controller.dart';
 import 'features/settings/screens/settings_screen.dart';
+import 'features/settings/widgets/update_banner.dart';
 
 class DailyProteinApp extends StatelessWidget {
   const DailyProteinApp({super.key});
@@ -41,6 +43,24 @@ class AppShell extends StatefulWidget {
 
 class _AppShellState extends State<AppShell> {
   int _index = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkForUpdate();
+  }
+
+  /// Offers a newer release if one exists. Runs after the first frame so it
+  /// never delays launch, and stays silent on any failure — the app works
+  /// offline and a missed check is not worth interrupting anyone over.
+  Future<void> _checkForUpdate() async {
+    if (!context.read<SettingsController>().checkForUpdates) return;
+
+    final AppUpdate? update = await UpdateService().check();
+    if (update == null || !mounted) return;
+
+    await showUpdateDialog(context, update);
+  }
 
   /// Jumps to Home showing the given day, used when a history row is tapped.
   Future<void> _openDay(String date) async {

@@ -10,6 +10,7 @@ import '../../log/data/log_controller.dart';
 import '../../products/data/product_controller.dart';
 import '../data/backup_service.dart';
 import '../data/settings_controller.dart';
+import '../widgets/update_banner.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -93,6 +94,18 @@ class SettingsScreen extends StatelessWidget {
                   value: _themeLabel(settings.themeMode),
                   onTap: () => _editTheme(context, settings),
                 ),
+                SettingsRow(
+                  icon: Icons.system_update_rounded,
+                  iconColor: icons.cyan,
+                  title: 'Check for Updates',
+                  subtitle: 'Look for a new version on launch',
+                  trailing: Switch(
+                    value: settings.checkForUpdates,
+                    onChanged: settings.setCheckForUpdates,
+                  ),
+                  onTap: () =>
+                      settings.setCheckForUpdates(!settings.checkForUpdates),
+                ),
               ],
             ),
             const SizedBox(height: AppSpacing.xl),
@@ -138,12 +151,10 @@ class SettingsScreen extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 2),
-                  Text(
-                    'Version 1.0.0',
-                    style: theme.textTheme.labelSmall?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
-                    ),
-                  ),
+                  // Read from the package rather than written here: a
+                  // hardcoded string drifts from pubspec, and the update
+                  // check compares against this number.
+                  const AppVersionLabel(),
                   const SizedBox(height: AppSpacing.md),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
