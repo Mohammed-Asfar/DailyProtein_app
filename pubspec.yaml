@@ -44,6 +44,9 @@ dependencies:
   image_picker: ^1.2.3
   path_provider: ^2.1.6
   stylish_bottom_bar: ^1.1.1
+  package_info_plus: ^10.2.1
+  http: ^1.6.0
+  url_launcher: ^6.3.2
 
 dev_dependencies:
   flutter_test:
@@ -55,6 +58,7 @@ dev_dependencies:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^6.0.0
+  flutter_launcher_icons: ^0.14.4
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
@@ -97,3 +101,15 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
+
+# Launcher icon. The adaptive foreground is padded so Android's circular
+# mask does not clip the logo's ring; the background is the flat dark green
+# from the branding tile, left flat so the system mask shapes the corners
+# rather than rounding an already-rounded image.
+flutter_launcher_icons:
+  android: true
+  ios: false
+  image_path: assets/branding/icon_legacy.png
+  adaptive_icon_background: "#02211B"
+  adaptive_icon_foreground: assets/branding/icon_foreground.png
+  min_sdk_android: 21
