@@ -75,16 +75,63 @@ class UpdateService {
       final String latest = normalise(tag);
       if (!isNewer(latest, than: installed)) return null;
 
-      final String? notes = decoded['body'] as String?;
+      final String plain = plainText(decoded['body'] as String?);
       return AppUpdate(
         version: latest,
         pageUrl: url,
-        notes: notes == null || notes.trim().isEmpty ? null : notes.trim(),
+        notes: plain.isEmpty ? null : plain,
       );
     } on Object {
       // Deliberately broad: a failed update check must never break launch.
       return null;
     }
+  }
+
+  /// Flattens GitHub's Markdown release body into readable plain text.
+  ///
+  /// The dialog is a plain Text, so `**New**` would otherwise reach the user
+  /// with its asterisks intact. Rendering Markdown properly would mean
+  /// another dependency for one dialog; the notes are short prose, so the
+  /// markup is simply removed.
+  static String plainText(String? body) {
+    if (body == null) return '';
+
+    String text = body.replaceAll('\r\n', '\n');
+
+    // Fenced code markers go; the code inside them stays.
+    text = text.replaceAll(RegExp(r'^```.*$', multiLine: true), '');
+    text = text.replaceAllMapped(
+      RegExp(r'`([^`]*)`'),
+      (Match m) => m.group(1) ?? '',
+    );
+
+    // Links keep their label and lose the target.
+    text = text.replaceAllMapped(
+      RegExp(r'\[([^\]]+)\]\([^)]*\)'),
+      (Match m) => m.group(1) ?? '',
+    );
+
+    // Bold, italic and strikethrough markers.
+    text = text.replaceAllMapped(
+      RegExp(r'(\*\*|__|~~)(.+?)\1', dotAll: true),
+      (Match m) => m.group(2) ?? '',
+    );
+    text = text.replaceAllMapped(
+      RegExp(r'(?<![\w*_])([*_])([^*_\n]+)\1(?![\w*_])'),
+      (Match m) => m.group(2) ?? '',
+    );
+
+    // Headings and blockquotes lose their leading marks.
+    text = text.replaceAll(RegExp(r'^\s{0,3}#{1,6}\s*', multiLine: true), '');
+    text = text.replaceAll(RegExp(r'^\s{0,3}>\s?', multiLine: true), '');
+
+    // List bullets become one consistent mark.
+    text = text.replaceAll(RegExp(r'^\s{0,3}[-*+]\s+', multiLine: true), '\u2022 ');
+
+    // Collapse the blank runs the removals leave behind.
+    text = text.replaceAll(RegExp(r'\n{3,}'), '\n\n');
+
+    return text.trim();
   }
 
   /// Strips a leading `v` and any build metadata, so `v1.2.0+3` and `1.2.0`

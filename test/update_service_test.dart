@@ -73,6 +73,73 @@ void main() {
     });
   });
 
+  group('plainText', () {
+    test('strips bold markers', () {
+      // The bug this guards: the dialog is a plain Text, so '**New**'
+      // reached users with its asterisks showing.
+      expect(UpdateService.plainText('**New**'), 'New');
+      expect(UpdateService.plainText('__also bold__'), 'also bold');
+    });
+
+    test('strips italics without eating snake_case', () {
+      expect(UpdateService.plainText('*soon*'), 'soon');
+      expect(UpdateService.plainText('a _word_ here'), 'a word here');
+      expect(
+        UpdateService.plainText('the update_service file'),
+        'the update_service file',
+      );
+    });
+
+    test('turns list bullets into one mark', () {
+      expect(
+        UpdateService.plainText('- one\n* two\n+ three'),
+        '• one\n• two\n• three',
+      );
+    });
+
+    test('drops heading and quote marks', () {
+      expect(UpdateService.plainText('## Changed'), 'Changed');
+      expect(UpdateService.plainText('> a note'), 'a note');
+    });
+
+    test('keeps link text and drops the target', () {
+      expect(
+        UpdateService.plainText('see [the docs](https://example.test)'),
+        'see the docs',
+      );
+    });
+
+    test('keeps code contents', () {
+      expect(UpdateService.plainText('run `flutter test`'), 'run flutter test');
+    });
+
+    test('collapses the gaps left behind', () {
+      expect(UpdateService.plainText('a\n\n\n\nb'), 'a\n\nb');
+    });
+
+    test('handles an empty or missing body', () {
+      expect(UpdateService.plainText(null), '');
+      expect(UpdateService.plainText('   '), '');
+    });
+
+    test('flattens a real release body', () {
+      // The v1.1.0 notes, which is what exposed the problem on device.
+      const String body = '**New**\n\n'
+          '- **Welcome flow** on first launch — explains what it does\n'
+          '- **App icon** — the fork and leaf logo\n\n'
+          '**Changed**\n\n'
+          '- Rebuilt the bottom navigation bar.';
+
+      final String plain = UpdateService.plainText(body);
+
+      expect(plain, isNot(contains('*')));
+      expect(plain, isNot(contains('_')));
+      expect(plain, startsWith('New'));
+      expect(plain, contains('• Welcome flow on first launch'));
+      expect(plain, contains('Changed'));
+    });
+  });
+
   group('check', () {
     test('reports a newer release', () async {
       final AppUpdate? update = await UpdateService(

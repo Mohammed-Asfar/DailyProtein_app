@@ -61,14 +61,33 @@ Future<void> showUpdateDialog(BuildContext context, AppUpdate update) async {
             if (update.notes != null) ...<Widget>[
               const SizedBox(height: AppSpacing.md),
               // Release notes are author-written and can run long, so they
-              // scroll rather than pushing the buttons off screen.
+              // scroll rather than pushing the buttons off screen. The cap
+              // is a share of the screen, not a fixed 160px, which on a
+              // tall phone left the notes looking cut off for no reason.
               ConstrainedBox(
-                constraints: const BoxConstraints(maxHeight: 160),
-                child: SingleChildScrollView(
-                  child: Text(
-                    update.notes!,
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
+                constraints: BoxConstraints(
+                  maxHeight: MediaQuery.sizeOf(context).height * 0.3,
+                ),
+                child: ShaderMask(
+                  // Fades the last few lines so a scrollable block reads as
+                  // continuing rather than as text that got truncated.
+                  shaderCallback: (Rect bounds) => LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    stops: const <double>[0, 0.85, 1],
+                    colors: <Color>[
+                      theme.colorScheme.onSurface,
+                      theme.colorScheme.onSurface,
+                      theme.colorScheme.onSurface.withValues(alpha: 0),
+                    ],
+                  ).createShader(bounds),
+                  child: SingleChildScrollView(
+                    child: Text(
+                      update.notes!,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                        height: 1.45,
+                      ),
                     ),
                   ),
                 ),
