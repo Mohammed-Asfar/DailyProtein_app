@@ -40,8 +40,12 @@ class StarterFood {
         createdAt: DateTime.now(),
       );
 
-  /// Values are per 100 g unless the entry says otherwise, taken from
-  /// standard food composition figures and rounded to one decimal.
+  /// Values are per 100 g unless the entry says otherwise, from USDA
+  /// FoodData Central where a matching record exists, and from Indian food
+  /// composition sources for paneer, roti and curd. Rounded to one decimal.
+  ///
+  /// Where a food varies by preparation the common form is used and named:
+  /// firm tofu is the calcium-sulfate kind (17.3 g), not nigari (9 g).
   static const List<StarterFood> all = <StarterFood>[
     // Proteins
     StarterFood(
@@ -49,7 +53,7 @@ class StarterFood {
       emoji: '🥚',
       categoryName: 'Proteins',
       protein: 6.3,
-      calories: 78,
+      calories: 72,
       measureMode: MeasureMode.perUnit,
       unitLabel: 'piece',
     ),
@@ -65,21 +69,21 @@ class StarterFood {
       emoji: '🧀',
       categoryName: 'Proteins',
       protein: 18,
-      calories: 265,
+      calories: 296,
     ),
     StarterFood(
-      name: 'Tofu',
+      name: 'Tofu (firm)',
       emoji: '🍲',
       categoryName: 'Proteins',
-      protein: 8,
-      calories: 76,
+      protein: 17.3,
+      calories: 144,
     ),
     StarterFood(
       name: 'Whey Scoop',
       emoji: '🥤',
       categoryName: 'Proteins',
       protein: 24,
-      calories: 120,
+      calories: 110,
       measureMode: MeasureMode.perUnit,
       unitLabel: 'scoop',
     ),
@@ -132,7 +136,7 @@ class StarterFood {
       emoji: '🥣',
       categoryName: 'Dairy',
       protein: 3.5,
-      calories: 98,
+      calories: 62,
     ),
 
     // Grains
@@ -148,7 +152,7 @@ class StarterFood {
       emoji: '🫓',
       categoryName: 'Grains',
       protein: 3,
-      calories: 104,
+      calories: 120,
       measureMode: MeasureMode.perUnit,
       unitLabel: 'piece',
     ),
