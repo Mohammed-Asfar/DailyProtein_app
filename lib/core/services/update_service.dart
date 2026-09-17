@@ -9,18 +9,28 @@ class AppUpdate {
   const AppUpdate({
     required this.version,
     required this.pageUrl,
+    this.apkUrl,
+    this.apkSize,
     this.notes,
   });
 
   /// Version of the release, without the leading `v`.
   final String version;
 
-  /// The release page, opened in a browser. An APK cannot install itself
-  /// from outside the Play Store without the user granting permission, so
-  /// the download is deliberately left to them.
+  /// The release page, used as the fallback when there is no APK attached
+  /// or the in-app download fails.
   final String pageUrl;
 
+  /// Direct link to the release's APK asset, when one is attached.
+  final String? apkUrl;
+
+  /// Size of that asset in bytes, so progress can be shown as a percentage.
+  final int? apkSize;
+
   final String? notes;
+
+  /// Whether the app can download and install this itself.
+  bool get canInstallInApp => apkUrl != null;
 }
 
 /// Checks GitHub Releases for a build newer than the installed one.
@@ -75,10 +85,30 @@ class UpdateService {
       final String latest = normalise(tag);
       if (!isNewer(latest, than: installed)) return null;
 
+      // The first .apk asset attached to the release, if any. Without one
+      // the dialog can still offer the release page.
+      String? apkUrl;
+      int? apkSize;
+      final Object? assets = decoded['assets'];
+      if (assets is List<Object?>) {
+        for (final Object? asset in assets) {
+          if (asset is! Map<String, dynamic>) continue;
+          final String? name = asset['name'] as String?;
+          final String? download = asset['browser_download_url'] as String?;
+          if (name == null || download == null) continue;
+          if (!name.toLowerCase().endsWith('.apk')) continue;
+          apkUrl = download;
+          apkSize = asset['size'] as int?;
+          break;
+        }
+      }
+
       final String plain = plainText(decoded['body'] as String?);
       return AppUpdate(
         version: latest,
         pageUrl: url,
+        apkUrl: apkUrl,
+        apkSize: apkSize,
         notes: plain.isEmpty ? null : plain,
       );
     } on Object {

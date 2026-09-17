@@ -65,6 +65,10 @@ class _AppShellState extends State<AppShell> {
     final AppUpdate? update = await UpdateService().check();
     if (update == null || !mounted) return;
 
+    // Recorded before the dialog so that dismissing it with Later still
+    // leaves the update reachable from Settings.
+    context.read<SettingsController>().setPendingUpdate(update);
+
     await showUpdateDialog(context, update);
   }
 

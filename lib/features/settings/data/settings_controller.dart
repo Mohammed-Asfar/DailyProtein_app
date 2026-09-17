@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/models/body_profile.dart';
+import '../../../core/services/update_service.dart';
 import 'settings_repository.dart';
 
 /// App-wide settings state. Held above [MaterialApp] so a theme change
@@ -28,6 +29,19 @@ class SettingsController extends ChangeNotifier {
   bool get hasOnboarded => _hasOnboarded;
   FitnessGoal get fitnessGoal => _fitnessGoal;
   bool get isLoaded => _loaded;
+
+  /// An update the user has been told about but not yet installed.
+  ///
+  /// Held here rather than in the dialog so that dismissing with "Later"
+  /// leaves a way back to it: Settings shows a banner while this is set.
+  AppUpdate? _pendingUpdate;
+  AppUpdate? get pendingUpdate => _pendingUpdate;
+
+  void setPendingUpdate(AppUpdate? update) {
+    if (update?.version == _pendingUpdate?.version) return;
+    _pendingUpdate = update;
+    notifyListeners();
+  }
 
   Future<void> load() async {
     _themeMode = await _repository.themeMode();

@@ -3,6 +3,11 @@
          tracking data stays on the device. -->
     <uses-permission android:name="android.permission.INTERNET" />
 
+    <!-- Lets the app hand a downloaded release APK to the system
+         installer. Android still asks the user to allow it. -->
+    <uses-permission
+        android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
+
     <application
         android:label="Daily Protein"
         android:name="${applicationName}"

@@ -140,6 +140,88 @@ void main() {
     });
   });
 
+  group('apk asset', () {
+    Map<String, Object?> withAssets(List<Map<String, Object?>> assets) {
+      final Map<String, Object?> release = _release();
+      release['assets'] = assets;
+      return release;
+    }
+
+    test('is picked up from the release', () async {
+      final AppUpdate? update = await UpdateService(
+        client: _client(200, withAssets(<Map<String, Object?>>[
+          <String, Object?>{
+            'name': 'DailyProtein-v1.1.0.apk',
+            'browser_download_url': 'https://example.test/app.apk',
+            'size': 1234,
+          },
+        ])),
+      ).check(currentVersion: '1.0.0');
+
+      expect(update!.apkUrl, 'https://example.test/app.apk');
+      expect(update.apkSize, 1234);
+      expect(update.canInstallInApp, isTrue);
+    });
+
+    test('ignores assets that are not APKs', () async {
+      // A release often carries checksums or notes alongside the build.
+      final AppUpdate? update = await UpdateService(
+        client: _client(200, withAssets(<Map<String, Object?>>[
+          <String, Object?>{
+            'name': 'checksums.txt',
+            'browser_download_url': 'https://example.test/checksums.txt',
+            'size': 64,
+          },
+          <String, Object?>{
+            'name': 'DailyProtein.apk',
+            'browser_download_url': 'https://example.test/real.apk',
+            'size': 999,
+          },
+        ])),
+      ).check(currentVersion: '1.0.0');
+
+      expect(update!.apkUrl, 'https://example.test/real.apk');
+    });
+
+    test('falls back to the page when no APK is attached', () async {
+      final AppUpdate? update = await UpdateService(
+        client: _client(200, withAssets(<Map<String, Object?>>[
+          <String, Object?>{
+            'name': 'notes.txt',
+            'browser_download_url': 'https://example.test/notes.txt',
+          },
+        ])),
+      ).check(currentVersion: '1.0.0');
+
+      expect(update!.apkUrl, isNull);
+      expect(update.canInstallInApp, isFalse);
+      expect(update.pageUrl, isNotEmpty);
+    });
+
+    test('survives a malformed assets list', () async {
+      final Map<String, Object?> release = _release();
+      release['assets'] = <Object?>['not a map', 42];
+
+      final AppUpdate? update = await UpdateService(
+        client: _client(200, release),
+      ).check(currentVersion: '1.0.0');
+
+      // The update is still offered; only the in-app install is lost.
+      expect(update, isNotNull);
+      expect(update!.canInstallInApp, isFalse);
+    });
+
+    test('an asset missing its url is skipped', () async {
+      final AppUpdate? update = await UpdateService(
+        client: _client(200, withAssets(<Map<String, Object?>>[
+          <String, Object?>{'name': 'broken.apk'},
+        ])),
+      ).check(currentVersion: '1.0.0');
+
+      expect(update!.canInstallInApp, isFalse);
+    });
+  });
+
   group('check', () {
     test('reports a newer release', () async {
       final AppUpdate? update = await UpdateService(

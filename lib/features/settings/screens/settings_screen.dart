@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
+import '../../../core/services/update_service.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../core/theme/app_colors.dart';
@@ -44,6 +45,18 @@ class SettingsScreen extends StatelessWidget {
                 color: theme.colorScheme.onSurfaceVariant,
               ),
             ),
+            // Only while an update is waiting: dismissing the dialog with
+            // Later should not mean losing track of it.
+            if (settings.pendingUpdate != null) ...<Widget>[
+              const SizedBox(height: AppSpacing.lg),
+              _UpdateBanner(
+                update: settings.pendingUpdate!,
+                onTap: () => showUpdateDialog(
+                  context,
+                  settings.pendingUpdate!,
+                ),
+              ),
+            ],
             const SizedBox(height: AppSpacing.xl),
             SettingsGroup(
               title: 'Goals & Preferences',
@@ -95,9 +108,9 @@ class SettingsScreen extends StatelessWidget {
                   onTap: () => _editTheme(context, settings),
                 ),
                 SettingsRow(
-                  icon: Icons.system_update_rounded,
+                  icon: Icons.notifications_active_outlined,
                   iconColor: icons.cyan,
-                  title: 'Check for Updates',
+                  title: 'Update Notifications',
                   subtitle: 'Look for a new version on launch',
                   trailing: Switch(
                     value: settings.checkForUpdates,
@@ -105,6 +118,13 @@ class SettingsScreen extends StatelessWidget {
                   ),
                   onTap: () =>
                       settings.setCheckForUpdates(!settings.checkForUpdates),
+                ),
+                SettingsRow(
+                  icon: Icons.system_update_rounded,
+                  iconColor: icons.chart,
+                  title: 'Check for Updates',
+                  subtitle: 'Look now and download the latest version',
+                  onTap: () => _checkForUpdates(context),
                 ),
               ],
             ),
@@ -139,7 +159,7 @@ class SettingsScreen extends StatelessWidget {
                 ),
               ],
             ),
-            const SizedBox(height: AppSpacing.xxl),
+            const SizedBox(height: AppSpacing.xl),
             Center(
               child: Column(
                 children: <Widget>[
@@ -181,6 +201,43 @@ class SettingsScreen extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  /// Checks on demand, from the Settings row.
+  ///
+  /// Unlike the silent check on launch, this one always reports back: the
+  /// user asked, so "you are up to date" and "that did not work" are both
+  /// answers worth giving.
+  Future<void> _checkForUpdates(BuildContext context) async {
+    final ScaffoldMessengerState messenger = ScaffoldMessenger.of(context);
+    final NavigatorState navigator = Navigator.of(context);
+    final SettingsController settings = context.read<SettingsController>();
+
+    showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) => const Center(
+        child: CircularProgressIndicator(),
+      ),
+    );
+
+    final AppUpdate? update = await UpdateService().check();
+    navigator.pop();
+
+    if (!context.mounted) return;
+
+    // Clears a stale banner as well as raising a new one.
+    settings.setPendingUpdate(update);
+
+    if (update == null) {
+      messenger.hideCurrentSnackBar();
+      messenger.showSnackBar(
+        const SnackBar(content: Text('You are on the latest version.')),
+      );
+      return;
+    }
+
+    await showUpdateDialog(context, update);
   }
 
   String _themeLabel(ThemeMode mode) => switch (mode) {
@@ -370,5 +427,63 @@ class SettingsScreen extends StatelessWidget {
 
     messenger.hideCurrentSnackBar();
     messenger.showSnackBar(SnackBar(content: Text(result.message)));
+  }
+}
+
+/// Sits at the top of Settings while an update is waiting to be installed.
+class _UpdateBanner extends StatelessWidget {
+  const _UpdateBanner({required this.update, required this.onTap});
+
+  final AppUpdate update;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final ThemeData theme = Theme.of(context);
+
+    return Material(
+      color: theme.colorScheme.primaryContainer,
+      borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.all(AppSpacing.lg),
+          child: Row(
+            children: <Widget>[
+              Icon(
+                Icons.system_update_rounded,
+                color: theme.colorScheme.onPrimaryContainer,
+              ),
+              const SizedBox(width: AppSpacing.lg),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Text(
+                      'Version ${update.version} is available',
+                      style: theme.textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.w700,
+                        color: theme.colorScheme.onPrimaryContainer,
+                      ),
+                    ),
+                    Text(
+                      'Tap to download and install',
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.onPrimaryContainer,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Icon(
+                Icons.chevron_right_rounded,
+                color: theme.colorScheme.onPrimaryContainer,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }
