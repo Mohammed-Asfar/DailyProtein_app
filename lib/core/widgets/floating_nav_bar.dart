@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:stylish_bottom_bar/stylish_bottom_bar.dart';
 
 import '../theme/app_spacing.dart';
 
@@ -15,248 +16,111 @@ class NavItem {
   final String label;
 }
 
-/// Floating pill navigation bar, optionally with an elevated action button
-/// raised out of its middle.
+/// Bottom navigation bar, optionally notched around a raised action button.
 ///
-/// When [onCenterPressed] is null the button is omitted and the tabs spread
-/// evenly across the full width, so the action can be offered only on the
-/// screens where it means something.
+/// Wraps `stylish_bottom_bar` so colours are still resolved from the theme
+/// here rather than passed as literals by every caller, keeping the single
+/// source of truth for colour intact.
 ///
-/// With the button present, items are split evenly either side of it, so an
-/// even number of them is expected.
+/// The raised button is **not** part of this widget. The package notches the
+/// bar but does not draw the button, which the Scaffold positions over the
+/// notch — see [buildCenterButton] and [centerLocation]. When [hasCenter] is
+/// false no notch is cut, so the bar reads as a plain rounded strip.
 class FloatingNavBar extends StatelessWidget {
   const FloatingNavBar({
     super.key,
     required this.items,
     required this.currentIndex,
     required this.onSelected,
-    this.onCenterPressed,
-    this.centerIcon = Icons.add_rounded,
-    this.centerTooltip,
+    this.hasCenter = false,
   });
 
   final List<NavItem> items;
   final int currentIndex;
   final ValueChanged<int> onSelected;
 
-  /// Null hides the centre button entirely.
-  final VoidCallback? onCenterPressed;
-
-  final IconData centerIcon;
-  final String? centerTooltip;
+  /// Whether to notch the bar for a centre button. The Scaffold must supply
+  /// a matching button, or the notch will be an empty bite out of the bar.
+  final bool hasCenter;
 
   /// Diameter of the raised centre button.
-  static const double _centerSize = 62;
+  static const double centerSize = 62;
 
-  /// Height of the pill itself, excluding the part of the button above it.
-  static const double _barHeight = 72;
+  /// Where the Scaffold places the centre button so it lands in the notch.
+  static FloatingActionButtonLocation get centerLocation =>
+      FloatingActionButtonLocation.centerDocked;
 
-  /// How much of the button sits above the top edge of the pill. A little
-  /// under half its height, so it overlaps the pill rather than floating
-  /// clear of it.
-  static const double _centerLift = 24;
-
-  @override
-  Widget build(BuildContext context) {
+  /// Builds the raised button that sits in the bar's notch.
+  ///
+  /// A plain [FloatingActionButton] rather than a hand-rolled circle: it
+  /// draws its fill, shadow and ink splash as one anti-aliased shape, where
+  /// a decorated Container clipped by a Material put a hard clip edge over a
+  /// soft fill and read as a rough edge.
+  static Widget buildCenterButton(
+    BuildContext context, {
+    required VoidCallback onPressed,
+    IconData icon = Icons.add_rounded,
+    String? tooltip,
+  }) {
     final ThemeData theme = Theme.of(context);
-    final VoidCallback? centerAction = onCenterPressed;
-    final bool hasCenter = centerAction != null;
-    final int half = items.length ~/ 2;
 
-    return SafeArea(
-      top: false,
-      minimum: const EdgeInsets.fromLTRB(
-        AppSpacing.lg,
-        0,
-        AppSpacing.lg,
-        AppSpacing.md,
-      ),
-      // With a button the stack is taller than the pill so the lifted button
-      // is not clipped; without one the pill is all there is.
-      child: SizedBox(
-        height: hasCenter ? _barHeight + _centerLift : _barHeight,
-        child: Stack(
-          alignment: Alignment.bottomCenter,
-          clipBehavior: Clip.none,
-          children: <Widget>[
-            _Pill(
-              height: _barHeight,
-              child: Row(
-                children: <Widget>[
-                  for (int i = 0; i < half; i++)
-                    Expanded(child: _buildTab(context, i)),
-                  // Gap the centre button sits in. Without a button the tabs
-                  // close up and spread across the full width instead.
-                  if (hasCenter)
-                    const SizedBox(width: _centerSize + AppSpacing.lg),
-                  for (int i = half; i < items.length; i++)
-                    Expanded(child: _buildTab(context, i)),
-                ],
-              ),
-            ),
-            if (hasCenter)
-              Positioned(
-                bottom: _barHeight - _centerSize + _centerLift,
-                child: _CenterButton(
-                  icon: centerIcon,
-                  tooltip: centerTooltip,
-                  size: _centerSize,
-                  onPressed: centerAction,
-                  color: theme.colorScheme.primary,
-                  iconColor: theme.colorScheme.onPrimary,
-                  ringColor: theme.scaffoldBackgroundColor,
-                ),
-              ),
-          ],
-        ),
+    return SizedBox(
+      height: centerSize,
+      width: centerSize,
+      child: FloatingActionButton(
+        onPressed: onPressed,
+        tooltip: tooltip,
+        elevation: 6,
+        shape: const CircleBorder(),
+        backgroundColor: theme.colorScheme.primary,
+        foregroundColor: theme.colorScheme.onPrimary,
+        child: Icon(icon, size: 30),
       ),
     );
   }
 
-  Widget _buildTab(BuildContext context, int index) {
-    return _NavTab(
-      item: items[index],
-      selected: index == currentIndex,
-      onTap: () => onSelected(index),
-    );
-  }
-}
-
-class _Pill extends StatelessWidget {
-  const _Pill({required this.height, required this.child});
-
-  final double height;
-  final Widget child;
-
   @override
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
+    final Color selected = theme.colorScheme.primary;
+    final Color unselected = theme.colorScheme.onSurfaceVariant;
 
-    return Container(
-      height: height,
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
-        borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
-        border: Border.all(color: theme.colorScheme.outline),
-        boxShadow: <BoxShadow>[
-          BoxShadow(
-            color: theme.shadowColor,
-            blurRadius: 20,
-            offset: const Offset(0, 6),
-          ),
-        ],
+    return StylishBottomBar(
+      currentIndex: currentIndex,
+      onTap: onSelected,
+      backgroundColor: theme.colorScheme.surface,
+      elevation: 8,
+      hasNotch: hasCenter,
+      notchStyle: NotchStyle.circle,
+      fabLocation: hasCenter ? StylishBarFabLocation.center : null,
+      borderRadius: const BorderRadius.vertical(
+        top: Radius.circular(AppSpacing.radiusLg),
       ),
-      child: child,
-    );
-  }
-}
-
-class _NavTab extends StatelessWidget {
-  const _NavTab({
-    required this.item,
-    required this.selected,
-    required this.onTap,
-  });
-
-  final NavItem item;
-  final bool selected;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final ThemeData theme = Theme.of(context);
-    final Color color =
-        selected ? theme.colorScheme.primary : theme.colorScheme.onSurfaceVariant;
-
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          mainAxisSize: MainAxisSize.min,
-          children: <Widget>[
-            Icon(
-              selected ? item.selectedIcon : item.icon,
-              size: 24,
-              color: color,
-            ),
-            const SizedBox(height: 4),
-            Text(
+      option: AnimatedBarOptions(
+        iconSize: 26,
+        barAnimation: BarAnimation.fade,
+        iconStyle: IconStyle.Default,
+        // The package dims unselected items by default; our own
+        // onSurfaceVariant is already the contrast-checked resting colour.
+        opacity: 1,
+      ),
+      items: <BottomBarItem>[
+        for (final NavItem item in items)
+          BottomBarItem(
+            icon: Icon(item.icon),
+            selectedIcon: Icon(item.selectedIcon),
+            selectedColor: selected,
+            unSelectedColor: unselected,
+            // The package sets size, weight and the selected/unselected
+            // colour via an inherited DefaultTextStyle, so the label carries
+            // no style of its own. Setting colour here would override it.
+            title: Text(
               item.label,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                fontSize: 13,
-                height: 1.1,
-                fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
-                color: color,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _CenterButton extends StatelessWidget {
-  const _CenterButton({
-    required this.icon,
-    required this.tooltip,
-    required this.size,
-    required this.onPressed,
-    required this.color,
-    required this.iconColor,
-    required this.ringColor,
-  });
-
-  final IconData icon;
-  final String? tooltip;
-  final double size;
-  final VoidCallback onPressed;
-  final Color color;
-  final Color iconColor;
-
-  /// Drawn behind the button so it reads as cut out of the pill.
-  final Color ringColor;
-
-  @override
-  Widget build(BuildContext context) {
-    final Widget button = Container(
-      height: size + 8,
-      width: size + 8,
-      decoration: BoxDecoration(shape: BoxShape.circle, color: ringColor),
-      child: Center(
-        child: Container(
-          height: size,
-          width: size,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: color,
-            boxShadow: <BoxShadow>[
-              BoxShadow(
-                color: color.withValues(alpha: 0.45),
-                blurRadius: 16,
-                offset: const Offset(0, 4),
-              ),
-            ],
-          ),
-          child: Material(
-            type: MaterialType.transparency,
-            shape: const CircleBorder(),
-            clipBehavior: Clip.antiAlias,
-            child: InkWell(
-              onTap: onPressed,
-              child: Icon(icon, size: 30, color: iconColor),
             ),
           ),
-        ),
-      ),
+      ],
     );
-
-    if (tooltip == null) return button;
-    return Tooltip(message: tooltip!, child: button);
   }
 }

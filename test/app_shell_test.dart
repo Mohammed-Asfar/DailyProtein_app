@@ -48,12 +48,21 @@ Widget _shell() {
   );
 }
 
-/// Matches only the nav bar's own add button. Scoped to [FloatingNavBar]
-/// because the Products screen has its own unrelated `+` in the app bar.
+/// Matches only the shell's docked add button. Scoped to the
+/// [FloatingActionButton] because the Products screen has its own
+/// unrelated `+` in the app bar, which is a plain icon button.
 final Finder _navAddButton = find.descendant(
-  of: find.byType(FloatingNavBar),
+  of: find.byType(FloatingActionButton),
   matching: find.byIcon(Icons.add_rounded),
 );
+
+/// Taps a nav destination by label, scoped to the bar: every screen stays
+/// mounted in the shell's IndexedStack, so a bare text finder can match a
+/// screen's own copy of the word instead of the tab.
+Finder _tab(String label) => find.descendant(
+      of: find.byType(FloatingNavBar),
+      matching: find.text(label),
+    );
 
 void main() {
   testWidgets('the add button shows on Today and nowhere else', (
@@ -66,8 +75,13 @@ void main() {
     expect(_navAddButton, findsOneWidget);
 
     for (final String tab in <String>['History', 'Products', 'Settings']) {
-      await tester.tap(find.text(tab));
+      await tester.tap(_tab(tab));
+      // One frame to rebuild the shell, then time for the Scaffold to run
+      // the button's exit animation — it unmounts the button at the end of
+      // that, not on the rebuild. pumpAndSettle cannot be used here:
+      // History and Products spin on a future that never resolves in tests.
       await tester.pump();
+      await tester.pump(const Duration(seconds: 1));
       expect(
         _navAddButton,
         findsNothing,
@@ -76,8 +90,9 @@ void main() {
     }
 
     // Returning to Today brings it back.
-    await tester.tap(find.text('Today'));
+    await tester.tap(_tab('Today'));
     await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
     expect(_navAddButton, findsOneWidget);
   });
 }

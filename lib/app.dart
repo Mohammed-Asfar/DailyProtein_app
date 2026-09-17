@@ -63,18 +63,26 @@ class _AppShellState extends State<AppShell> {
       const SettingsScreen(),
     ];
 
+    // Only offered on Today, where logging happens. Elsewhere the button
+    // would be an action with no relationship to the screen.
+    final bool showAdd = _index == 0;
+
     return Scaffold(
-      // The bar floats over the content rather than displacing it, so every
-      // screen pads its own list bottom to clear it.
-      extendBody: true,
       body: IndexedStack(index: _index, children: pages),
+      // The bar notches around the button but does not draw it; the
+      // Scaffold docks it into the notch.
+      floatingActionButtonLocation: FloatingNavBar.centerLocation,
+      floatingActionButton: showAdd
+          ? FloatingNavBar.buildCenterButton(
+              context,
+              onPressed: _addFood,
+              tooltip: 'Add food',
+            )
+          : null,
       bottomNavigationBar: FloatingNavBar(
         currentIndex: _index,
         onSelected: (int index) => setState(() => _index = index),
-        centerTooltip: 'Add food',
-        // Only offered on Today, where logging happens. Elsewhere the button
-        // would be an action with no relationship to the screen.
-        onCenterPressed: _index == 0 ? _addFood : null,
+        hasCenter: showAdd,
         items: const <NavItem>[
           NavItem(
             icon: Icons.today_outlined,
