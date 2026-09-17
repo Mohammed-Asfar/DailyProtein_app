@@ -41,6 +41,13 @@ class AppColors {
   static const Color darkAccentText = darkAccent;
   static const Color lightAccentText = Color(0xFF9A5D07);
 
+  // ---- Primary for text -----------------------------------------------
+  /// The primary is a fill and UI-mark colour. As body text on a light
+  /// ground it reaches only 3.26:1, so text that needs to read as "primary"
+  /// uses these instead. Dark mode can use the primary itself.
+  static const Color darkPrimaryText = darkPrimary;
+  static const Color lightPrimaryText = Color(0xFF0F7F7B);
+
   // ---- Row icons ------------------------------------------------------
   /// Per-row icon tints for list screens. A single accent across every row
   /// reads as a wall of one colour; these give each row its own mark.
@@ -108,4 +115,9 @@ class AppIconColors {
       isDark ? AppColors.iconAmberDark : AppColors.iconAmberLight;
   Color get cyan => isDark ? AppColors.iconCyanDark : AppColors.iconCyanLight;
   Color get danger => AppColors.danger;
+
+  /// The brand colour at a weight that is legible as body text, which the
+  /// primary itself is not on a light background.
+  Color get primaryText =>
+      isDark ? AppColors.darkPrimaryText : AppColors.lightPrimaryText;
 }

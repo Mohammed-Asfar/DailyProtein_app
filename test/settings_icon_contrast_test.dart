@@ -65,6 +65,30 @@ void main() {
         );
       }
     });
+
+    testWidgets('${entry.key}: the brand colour reads as body text', (
+      WidgetTester tester,
+    ) async {
+      late AppIconColors icons;
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: entry.value,
+          home: Builder(
+            builder: (BuildContext context) {
+              icons = AppIconColors.of(context);
+              return const SizedBox.shrink();
+            },
+          ),
+        ),
+      );
+
+      // colorScheme.primary is a fill colour and only reaches 3.26:1 as
+      // text on a light ground; primaryText is the legible variant.
+      expect(
+        _contrast(icons.primaryText, entry.value.scaffoldBackgroundColor),
+        greaterThanOrEqualTo(4.5),
+      );
+    });
   }
 
   test('light mode uses deeper shades than dark mode', () {
