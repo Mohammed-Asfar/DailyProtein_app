@@ -149,6 +149,17 @@ class _HistoryScreenState extends State<HistoryScreen> {
       body: FutureBuilder<HistorySummary>(
         future: _future,
         builder: (BuildContext context, AsyncSnapshot<HistorySummary> snapshot) {
+          // Checked first: a failed load has no data either, and used to
+          // read as an endless spinner.
+          if (snapshot.hasError) {
+            return EmptyState(
+              icon: Icons.error_outline_rounded,
+              title: 'Could not load history',
+              message: '${snapshot.error}',
+              actionLabel: 'Try again',
+              onAction: _reload,
+            );
+          }
           if (!snapshot.hasData) {
             return const Center(child: CircularProgressIndicator());
           }

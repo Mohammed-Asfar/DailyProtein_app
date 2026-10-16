@@ -23,9 +23,13 @@ class ProductController extends ChangeNotifier {
   Future<void> load() async {
     _loading = true;
     notifyListeners();
-    _products = await _repository.all();
-    _loading = false;
-    notifyListeners();
+    // finally: a failed query must not leave the list spinning for good.
+    try {
+      _products = await _repository.all();
+    } finally {
+      _loading = false;
+      notifyListeners();
+    }
   }
 
   /// Fills an empty catalogue with the starter foods, so the app is usable

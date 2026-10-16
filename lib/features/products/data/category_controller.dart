@@ -34,10 +34,13 @@ class CategoryController extends ChangeNotifier {
   Future<void> load() async {
     _loading = true;
     notifyListeners();
-    _categories = await _repository.all();
-    _counts = await _repository.productCounts();
-    _loading = false;
-    notifyListeners();
+    try {
+      _categories = await _repository.all();
+      _counts = await _repository.productCounts();
+    } finally {
+      _loading = false;
+      notifyListeners();
+    }
   }
 
   Future<Category> add(Category category) async {

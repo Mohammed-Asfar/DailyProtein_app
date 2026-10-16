@@ -39,10 +39,14 @@ class LogController extends ChangeNotifier {
   Future<void> load() async {
     _loading = true;
     notifyListeners();
-    _entries = await _repository.forDate(_date);
-    _totals = await _repository.totalsForDate(_date);
-    _loading = false;
-    notifyListeners();
+    // finally: a failed query must not leave Today spinning for good.
+    try {
+      _entries = await _repository.forDate(_date);
+      _totals = await _repository.totalsForDate(_date);
+    } finally {
+      _loading = false;
+      notifyListeners();
+    }
   }
 
   Future<void> setDate(String date) async {

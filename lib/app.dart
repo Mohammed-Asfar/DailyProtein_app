@@ -3,6 +3,7 @@ import 'package:in_app_update/in_app_update.dart';
 import 'package:provider/provider.dart';
 
 import 'core/theme/app_theme.dart';
+import 'core/widgets/empty_state.dart';
 import 'core/widgets/floating_nav_bar.dart';
 import 'features/history/screens/history_screen.dart';
 import 'features/home/screens/home_screen.dart';
@@ -168,7 +169,7 @@ class AppBootstrap extends StatefulWidget {
 }
 
 class _AppBootstrapState extends State<AppBootstrap> {
-  late final Future<void> _ready;
+  late Future<void> _ready;
 
   @override
   void initState() {
@@ -198,13 +199,29 @@ class _AppBootstrapState extends State<AppBootstrap> {
     return FutureBuilder<void>(
       future: _ready,
       builder: (BuildContext context, AsyncSnapshot<void> snapshot) {
-        if (snapshot.connectionState != ConnectionState.done) {
+        final bool loading =
+            snapshot.connectionState != ConnectionState.done;
+        // A failed step used to be ignored: the app opened half-loaded
+        // and its lists spun forever. Show the cause and let them retry.
+        if (loading || snapshot.hasError) {
+          if (snapshot.hasError) {
+            debugPrint('Startup failed: ${snapshot.error}');
+            debugPrint('${snapshot.stackTrace}');
+          }
           return MaterialApp(
             debugShowCheckedModeBanner: false,
             theme: AppTheme.light,
             darkTheme: AppTheme.dark,
-            home: const Scaffold(
-              body: Center(child: CircularProgressIndicator()),
+            home: Scaffold(
+              body: loading
+                  ? const Center(child: CircularProgressIndicator())
+                  : EmptyState(
+                      icon: Icons.error_outline_rounded,
+                      title: 'Could not load your data',
+                      message: '${snapshot.error}',
+                      actionLabel: 'Try again',
+                      onAction: () => setState(() => _ready = _load()),
+                    ),
             ),
           );
         }
