@@ -39,15 +39,19 @@ class _ProductsScreenState extends State<ProductsScreen> {
   Future<void> _openForm({Product? existing}) async {
     await Navigator.of(context).push(
       MaterialPageRoute<Product>(
-        builder: (_) => ProductFormScreen(existing: existing),
+        builder: (_) => ProductFormScreen(
+          existing: existing,
+          onDelete: existing == null ? null : () => _confirmDelete(existing),
+        ),
       ),
     );
   }
 
-  Future<void> _confirmDelete(Product product) async {
+  /// Returns whether the product was deleted, so the edit form knows to close.
+  Future<bool> _confirmDelete(Product product) async {
     final ProductController controller = context.read<ProductController>();
     final int count = await controller.entryCount(product.id!);
-    if (!mounted) return;
+    if (!mounted) return false;
 
     final bool? confirmed = await showDialog<bool>(
       context: context,
@@ -76,14 +80,15 @@ class _ProductsScreenState extends State<ProductsScreen> {
       ),
     );
 
-    if (confirmed != true || !mounted) return;
+    if (confirmed != true || !mounted) return false;
     await controller.delete(product.id!);
     // The row is gone, so nothing can reference its photo any more.
     await ImageStore().delete(product.imagePath);
-    if (!mounted) return;
+    if (!mounted) return true;
     await context.read<CategoryController>().refreshCounts();
-    if (!mounted) return;
+    if (!mounted) return true;
     await context.read<LogController>().load();
+    return true;
   }
 
   Widget _emptyState() => EmptyState(

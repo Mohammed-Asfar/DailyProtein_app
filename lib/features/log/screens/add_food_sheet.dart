@@ -17,23 +17,34 @@ import '../models/food_entry.dart';
 /// Two-step bottom sheet: pick a product, then set the quantity while the
 /// protein total updates live.
 class AddFoodSheet extends StatefulWidget {
-  const AddFoodSheet({super.key, required this.date, this.editing});
+  const AddFoodSheet({
+    super.key,
+    required this.date,
+    this.editing,
+    this.onDelete,
+  });
 
   final String date;
 
   /// When set, the sheet edits an existing entry instead of creating one.
   final FoodEntry? editing;
 
+  /// Removes [editing]. Offered here because tapping an entry is how people
+  /// look for delete; swipe-to-delete alone went undiscovered.
+  final VoidCallback? onDelete;
+
   static Future<void> show(
     BuildContext context, {
     required String date,
     FoodEntry? editing,
+    VoidCallback? onDelete,
   }) {
     return showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       useSafeArea: true,
-      builder: (_) => AddFoodSheet(date: date, editing: editing),
+      builder: (_) =>
+          AddFoodSheet(date: date, editing: editing, onDelete: onDelete),
     );
   }
 
@@ -214,11 +225,42 @@ class _AddFoodSheetState extends State<AddFoodSheet> {
               if (_selected != null)
                 SafeArea(
                   minimum: const EdgeInsets.all(AppSpacing.lg),
-                  child: FilledButton(
-                    onPressed: _canSave ? _save : null,
-                    child: Text(
-                      widget.editing != null ? 'Save changes' : 'Add to log',
-                    ),
+                  child: Row(
+                    children: <Widget>[
+                      if (widget.editing != null &&
+                          widget.onDelete != null) ...<Widget>[
+                        // Expanded because the theme gives buttons an
+                        // infinite minimum width, which a Row cannot lay out.
+                        Expanded(
+                          child: OutlinedButton.icon(
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: theme.colorScheme.error,
+                              side: BorderSide(
+                                color: theme.colorScheme.error,
+                              ),
+                            ),
+                            // Closes first; the caller asks to confirm.
+                            onPressed: () {
+                              Navigator.of(context).pop();
+                              widget.onDelete!();
+                            },
+                            icon: const Icon(Icons.delete_outline),
+                            label: const Text('Remove'),
+                          ),
+                        ),
+                        const SizedBox(width: AppSpacing.md),
+                      ],
+                      Expanded(
+                        child: FilledButton(
+                          onPressed: _canSave ? _save : null,
+                          child: Text(
+                            widget.editing != null
+                                ? 'Save changes'
+                                : 'Add to log',
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
             ],

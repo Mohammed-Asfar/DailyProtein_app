@@ -19,9 +19,13 @@ import '../widgets/product_image.dart';
 
 /// Create or edit a product. Returns the saved [Product] via pop.
 class ProductFormScreen extends StatefulWidget {
-  const ProductFormScreen({super.key, this.existing});
+  const ProductFormScreen({super.key, this.existing, this.onDelete});
 
   final Product? existing;
+
+  /// Asks to delete [existing] and reports whether it was. Offered here
+  /// because tapping a product is how people look for delete.
+  final Future<bool> Function()? onDelete;
 
   bool get isEditing => existing != null;
 
@@ -197,6 +201,20 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.isEditing ? 'Edit product' : 'New product'),
+        actions: <Widget>[
+          if (widget.isEditing && widget.onDelete != null)
+            IconButton(
+              tooltip: 'Delete product',
+              icon: Icon(
+                Icons.delete_outline,
+                color: theme.colorScheme.error,
+              ),
+              onPressed: () async {
+                final bool deleted = await widget.onDelete!();
+                if (deleted && context.mounted) Navigator.of(context).pop();
+              },
+            ),
+        ],
       ),
       body: Form(
         key: _formKey,

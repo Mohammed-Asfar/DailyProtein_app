@@ -39,6 +39,32 @@ class HomeScreen extends StatelessWidget {
     FoodEntry entry,
   ) async {
     final ScaffoldMessengerState messenger = ScaffoldMessenger.of(context);
+    final bool? confirmed = await showDialog<bool>(
+      context: context,
+      builder: (BuildContext context) => AlertDialog(
+        title: Text('Remove ${entry.displayName}?'),
+        content: Text(
+          '${entry.quantityLabel} (${Fmt.grams(entry.protein)} protein) '
+          'will be removed from this day\'s log.',
+        ),
+        actions: <Widget>[
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(
+              backgroundColor: Theme.of(context).colorScheme.error,
+              minimumSize: const Size(96, 44),
+            ),
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('Remove'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+
     await log.deleteEntry(entry.id!);
     messenger.hideCurrentSnackBar();
     messenger.showSnackBar(
@@ -98,7 +124,7 @@ class HomeScreen extends StatelessWidget {
                 title: 'Logged today',
                 trailing: totals.entryCount > 0
                     ? '${totals.entryCount} '
-                        '${totals.entryCount == 1 ? 'item' : 'items'}'
+                          '${totals.entryCount == 1 ? 'item' : 'items'}'
                     : null,
               ),
               if (log.isLoading)
@@ -108,9 +134,7 @@ class HomeScreen extends StatelessWidget {
                 )
               else if (log.isEmpty)
                 Padding(
-                  padding: const EdgeInsets.symmetric(
-                    vertical: AppSpacing.xl,
-                  ),
+                  padding: const EdgeInsets.symmetric(vertical: AppSpacing.xl),
                   // No action button here: the nav bar's centre button
                   // already offers this action.
                   child: EmptyState(
@@ -164,10 +188,12 @@ class HomeScreen extends StatelessWidget {
                         onTap: entry.product == null
                             ? null
                             : () => AddFoodSheet.show(
-                                  context,
-                                  date: log.date,
-                                  editing: entry,
-                                ),
+                                context,
+                                date: log.date,
+                                editing: entry,
+                                onDelete: () =>
+                                    _deleteEntry(context, log, entry),
+                              ),
                       ),
                     ),
                 ],
