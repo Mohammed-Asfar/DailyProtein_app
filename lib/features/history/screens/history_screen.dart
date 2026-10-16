@@ -171,7 +171,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
               AppSpacing.lg,
               0,
               AppSpacing.lg,
-              AppSpacing.navBarClearance,
+              AppSpacing.xl,
             ),
             children: <Widget>[
               RangeSelector(

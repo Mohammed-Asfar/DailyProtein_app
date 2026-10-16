@@ -9,12 +9,6 @@ class AppSpacing {
   static const double xl = 24;
   static const double xxl = 32;
 
-  /// Vertical room a scrollable must leave at its bottom so content clears
-  /// the floating nav bar, which overlays the body rather than displacing it.
-  /// Sized for the taller variant that carries the raised centre button;
-  /// screens without it simply end with a little extra space.
-  static const double navBarClearance = 120;
-
   static const double radiusSm = 10;
   static const double radiusMd = 16;
   static const double radiusLg = 24;

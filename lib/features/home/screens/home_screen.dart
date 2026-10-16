@@ -5,6 +5,7 @@ import '../../../core/theme/app_spacing.dart';
 import '../../../core/utils/date_utils.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../core/widgets/empty_state.dart';
+import '../../../core/widgets/floating_nav_bar.dart';
 import '../../../core/widgets/progress_ring.dart';
 import '../../../core/widgets/section_header.dart';
 import '../../../core/widgets/stat_tile.dart';
@@ -72,7 +73,9 @@ class HomeScreen extends StatelessWidget {
               AppSpacing.lg,
               0,
               AppSpacing.lg,
-              AppSpacing.navBarClearance,
+              // The body already stops at the nav bar; only the raised
+              // add button, docked on the bar's edge, reaches into it.
+              FloatingNavBar.centerSize / 2 + AppSpacing.lg,
             ),
             children: <Widget>[
               DaySwitcher(

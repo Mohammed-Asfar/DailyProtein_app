@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:stylish_bottom_bar/stylish_bottom_bar.dart';
 
-import '../theme/app_spacing.dart';
-
 /// One destination in the [FloatingNavBar].
 class NavItem {
   const NavItem({
@@ -93,9 +91,6 @@ class FloatingNavBar extends StatelessWidget {
       hasNotch: hasCenter,
       notchStyle: NotchStyle.circle,
       fabLocation: hasCenter ? StylishBarFabLocation.center : null,
-      borderRadius: const BorderRadius.vertical(
-        top: Radius.circular(AppSpacing.radiusLg),
-      ),
       option: AnimatedBarOptions(
         iconSize: 26,
         barAnimation: BarAnimation.fade,

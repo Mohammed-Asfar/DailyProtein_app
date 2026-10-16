@@ -29,7 +29,7 @@ class SettingsScreen extends StatelessWidget {
             AppSpacing.lg,
             AppSpacing.lg,
             AppSpacing.lg,
-            AppSpacing.navBarClearance,
+            AppSpacing.xl,
           ),
           children: <Widget>[
             Text(

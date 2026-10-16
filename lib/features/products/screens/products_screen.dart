@@ -122,7 +122,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
             AppSpacing.lg,
             AppSpacing.lg,
             AppSpacing.lg,
-            AppSpacing.navBarClearance,
+            AppSpacing.xl,
           ),
           children: <Widget>[
             Row(
