@@ -20,17 +20,22 @@ import '../widgets/weekly_chart.dart';
 
 /// Past days, the weekly chart, averages and value-for-money insights.
 class HistoryScreen extends StatefulWidget {
-  const HistoryScreen({super.key, this.onOpenDay});
+  const HistoryScreen({super.key, this.onOpenDay, this.repository});
 
   /// Called when a past day is tapped, so the shell can switch to Home.
   final ValueChanged<String>? onOpenDay;
+
+  /// Overridable so tests and store screenshots can supply data without
+  /// a database.
+  final EntryRepository? repository;
 
   @override
   State<HistoryScreen> createState() => _HistoryScreenState();
 }
 
 class _HistoryScreenState extends State<HistoryScreen> {
-  final EntryRepository _repository = EntryRepository();
+  late final EntryRepository _repository =
+      widget.repository ?? EntryRepository();
 
   /// Preset window in days. Ignored while [_customRange] is set.
   int _rangeDays = 7;
