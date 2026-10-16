@@ -6,7 +6,7 @@ plugins {
 }
 
 android {
-    namespace = "com.dailyprotein.daily_protein"
+    namespace = "com.devsyndicate.dailyprotein"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
@@ -20,8 +20,8 @@ android {
     }
 
     defaultConfig {
-        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId = "com.dailyprotein.daily_protein"
+        // Permanent once published: Play ties the listing and updates to it.
+        applicationId = "com.devsyndicate.dailyprotein"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion

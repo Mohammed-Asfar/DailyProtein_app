@@ -1,4 +1,4 @@
-package com.dailyprotein.daily_protein
+package com.devsyndicate.dailyprotein
 
 import io.flutter.embedding.android.FlutterActivity
 
