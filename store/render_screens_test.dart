@@ -60,7 +60,7 @@ final List<Category> _categories = <Category>[
 final List<Product> _products = () {
   const Map<String, double> prices = <String, double>{
     'Egg': 7, 'Chicken Breast': 32, 'Paneer': 45, 'Milk': 6,
-    'Whey Scoop': 60, 'Greek Yogurt': 25, 'Toor Dal (cooked)': 8,
+    'Whey Scoop': 60, 'Greek Yoghurt': 25, 'Lentils (cooked)': 8,
   };
   final List<Product> list = <Product>[];
   for (int i = 0; i < StarterFood.all.length; i++) {
@@ -75,10 +75,8 @@ final List<Product> _products = () {
         a.name.toLowerCase().compareTo(b.name.toLowerCase()));
 }();
 
-Product _p(String name) => _products.firstWhere(
-      (Product p) => p.name == name,
-      orElse: () => _products.first,
-    );
+// No fallback: a misspelt name once silently logged the wrong food.
+Product _p(String name) => _products.firstWhere((Product p) => p.name == name);
 
 FoodEntry _entry(int id, String name, double qty, Meal meal) {
   final Product p = _p(name);
@@ -100,7 +98,7 @@ final List<FoodEntry> _today = <FoodEntry>[
   _entry(1, 'Egg', 3, Meal.breakfast),
   _entry(2, 'Milk', 250, Meal.breakfast),
   _entry(3, 'Chicken Breast', 150, Meal.lunch),
-  _entry(4, 'Toor Dal (cooked)', 200, Meal.lunch),
+  _entry(4, 'Lentils (cooked)', 200, Meal.lunch),
   _entry(5, 'Whey Scoop', 1, Meal.snack),
 ];
 

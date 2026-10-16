@@ -3,8 +3,8 @@
 Run after render_screens_test.dart:
     python store/compose.py
 
-Writes store/play/: four 1080x1920 phone screenshots and the 1024x500
-feature graphic. Colours mirror lib/core/theme/app_colors.dart.
+Writes store/play/: four 1080x1920 phone screenshots, the 1024x500
+feature graphic and the 512x512 app icon. Colours mirror lib/core/theme/app_colors.dart.
 """
 
 import os
@@ -131,12 +131,20 @@ def feature_graphic():
     return canvas.convert("RGB")
 
 
+def store_icon():
+    # Full-bleed square: Play applies its own rounded mask, so corners or
+    # a shadow drawn here would be doubled up. RGBA as Play asks for a
+    # 32-bit PNG.
+    return Image.open(ICON).convert("RGBA").resize((512, 512), Image.LANCZOS)
+
+
 def main():
     OUT.mkdir(exist_ok=True)
     for name, title, subtitle in SCREENS:
         phone_shot(name, title, subtitle).save(OUT / f"{name}.png", optimize=True)
     feature_graphic().save(OUT / "feature_graphic.png", optimize=True)
-    print(f"Wrote {len(SCREENS) + 1} images to {OUT}")
+    store_icon().save(OUT / "icon_512.png", optimize=True)
+    print(f"Wrote {len(SCREENS) + 2} images to {OUT}")
 
 
 if __name__ == "__main__":
