@@ -5,12 +5,12 @@ import 'package:daily_protein/features/log/models/food_entry.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-Widget _chart(List<String> days) {
+Widget _chart(List<String> days, {double inset = 16}) {
   return MaterialApp(
     theme: AppTheme.dark,
     home: Scaffold(
       body: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: EdgeInsets.all(inset),
         child: WeeklyChart(
           days: days,
           totals: <String, DayTotals>{
@@ -130,6 +130,53 @@ void main() {
       reason: '30 days should not be crammed into one screen width',
     );
   });
+
+  // The History card's real width matters: the list and the card each pad
+  // by 16, so the chart gets 32 less on each side than the screen. Testing
+  // only a roomy width once hid a week that overflowed real phones.
+  for (final ({String name, double width}) phone
+      in <({String name, double width})>[
+    (name: 'a typical 360dp phone', width: 360),
+    (name: 'a small 320dp phone', width: 320),
+  ]) {
+    testWidgets('a week fits without scrolling on ${phone.name}', (
+      WidgetTester tester,
+    ) async {
+      tester.view.physicalSize = Size(phone.width * 3, 2000);
+      tester.view.devicePixelRatio = 3;
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(_chart(DayKey.lastDays(7), inset: 32));
+      await tester.pumpAndSettle();
+
+      final ScrollableState scrollable = tester.state<ScrollableState>(
+        find.descendant(
+          of: find.byType(SingleChildScrollView),
+          matching: find.byType(Scrollable),
+        ),
+      );
+      expect(
+        scrollable.position.maxScrollExtent,
+        0,
+        reason: 'a scrolling week opens on its latest day, cutting off the '
+            'first label',
+      );
+
+      final Rect scroller = tester.getRect(find.byType(SingleChildScrollView));
+      final List<({String text, double left, double right})> labels =
+          _dayLabels(tester);
+      expect(labels.length, 7);
+      expect(
+        labels.first.left,
+        greaterThanOrEqualTo(scroller.left),
+        reason: '"${labels.first.text}" runs off the left edge',
+      );
+      expect(
+        labels.last.right,
+        lessThanOrEqualTo(scroller.right),
+        reason: '"${labels.last.text}" runs off the right edge',
+      );
+    });
+  }
 
   testWidgets('a week fits without scrolling', (WidgetTester tester) async {
     _phoneSized(tester);

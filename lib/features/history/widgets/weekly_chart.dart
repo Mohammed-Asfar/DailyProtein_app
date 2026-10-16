@@ -39,13 +39,6 @@ class _WeeklyChartState extends State<WeeklyChart> {
   /// neighbouring labels never touch however long the range is.
   static const double _slotWidth = 78;
 
-  /// A week uses short weekday labels and is meant to fit without scrolling,
-  /// so it only needs room for "Wed".
-  static const double _weekSlotWidth = 40;
-
-  double get _minSlot =>
-      widget.days.length <= 7 ? _weekSlotWidth : _slotWidth;
-
   static const double _chartHeight = 200;
   /// The y-axis gutter. Sized so a three-digit value at [_axisFontSize]
   /// (about 33px) fits without clipping, plus a small gap before the plot,
@@ -111,10 +104,14 @@ class _WeeklyChartState extends State<WeeklyChart> {
       builder: (BuildContext context, BoxConstraints constraints) {
         // The scroller gets whatever the pinned axis leaves behind.
         final double available = constraints.maxWidth - _axisWidth;
-        final double wanted = widget.days.length * _minSlot;
-        // Short ranges stretch to fill the card exactly, so they do not
-        // scroll; longer ones overflow and become scrollable.
-        final double plotWidth = wanted <= available ? available : wanted;
+        final double wanted = widget.days.length * _slotWidth;
+        // A week always fills the card exactly and never scrolls: its
+        // weekday labels need only about 24px each, which even a small
+        // phone affords. A fixed minimum slot used to overflow a real
+        // phone's card by a few pixels, and opening scrolled to the latest
+        // day then cut the first label off. Longer ranges scroll.
+        final bool fits = widget.days.length <= 7 || wanted <= available;
+        final double plotWidth = fits ? available : wanted;
 
         return SizedBox(
           height: _chartHeight,
