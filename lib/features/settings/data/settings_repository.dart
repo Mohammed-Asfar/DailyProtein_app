@@ -9,17 +9,12 @@ class SettingsRepository {
   static const String _kCalorieGoal = 'daily_calorie_goal';
   static const String _kThemeMode = 'theme_mode';
   static const String _kCurrency = 'currency_symbol';
-  static const String _kUpdateCheck = 'check_for_updates';
   static const String _kOnboarded = 'onboarding_complete';
   static const String _kGoalKind = 'fitness_goal';
 
   static const double defaultGoal = 120;
   static const double defaultCalorieGoal = 2000;
   static const String defaultCurrency = '₹';
-
-  /// On by default: an offline app that never mentions a new build
-  /// leaves users on a stale version indefinitely.
-  static const bool defaultCheckForUpdates = true;
 
   Future<SharedPreferences> get _prefs => SharedPreferences.getInstance();
 
@@ -40,12 +35,6 @@ class SettingsRepository {
 
   Future<void> setCurrencySymbol(String value) async =>
       (await _prefs).setString(_kCurrency, value);
-
-  Future<bool> checkForUpdates() async =>
-      (await _prefs).getBool(_kUpdateCheck) ?? defaultCheckForUpdates;
-
-  Future<void> setCheckForUpdates(bool value) async =>
-      (await _prefs).setBool(_kUpdateCheck, value);
 
   /// Whether the welcome flow has been completed. Absent on a fresh
   /// install, which is what makes it show exactly once.

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/models/body_profile.dart';
-import '../../../core/services/update_service.dart';
 import 'settings_repository.dart';
 
 /// App-wide settings state. Held above [MaterialApp] so a theme change
@@ -16,7 +15,6 @@ class SettingsController extends ChangeNotifier {
   double _proteinGoal = SettingsRepository.defaultGoal;
   double _calorieGoal = SettingsRepository.defaultCalorieGoal;
   String _currencySymbol = SettingsRepository.defaultCurrency;
-  bool _checkForUpdates = SettingsRepository.defaultCheckForUpdates;
   bool _hasOnboarded = false;
   FitnessGoal _fitnessGoal = FitnessGoal.maintainWeight;
   bool _loaded = false;
@@ -25,30 +23,15 @@ class SettingsController extends ChangeNotifier {
   double get proteinGoal => _proteinGoal;
   double get calorieGoal => _calorieGoal;
   String get currencySymbol => _currencySymbol;
-  bool get checkForUpdates => _checkForUpdates;
   bool get hasOnboarded => _hasOnboarded;
   FitnessGoal get fitnessGoal => _fitnessGoal;
   bool get isLoaded => _loaded;
-
-  /// An update the user has been told about but not yet installed.
-  ///
-  /// Held here rather than in the dialog so that dismissing with "Later"
-  /// leaves a way back to it: Settings shows a banner while this is set.
-  AppUpdate? _pendingUpdate;
-  AppUpdate? get pendingUpdate => _pendingUpdate;
-
-  void setPendingUpdate(AppUpdate? update) {
-    if (update?.version == _pendingUpdate?.version) return;
-    _pendingUpdate = update;
-    notifyListeners();
-  }
 
   Future<void> load() async {
     _themeMode = await _repository.themeMode();
     _proteinGoal = await _repository.proteinGoal();
     _calorieGoal = await _repository.calorieGoal();
     _currencySymbol = await _repository.currencySymbol();
-    _checkForUpdates = await _repository.checkForUpdates();
     _hasOnboarded = await _repository.hasOnboarded();
     _fitnessGoal = await _repository.fitnessGoal();
     _loaded = true;
@@ -92,12 +75,5 @@ class SettingsController extends ChangeNotifier {
     _hasOnboarded = true;
     notifyListeners();
     await _repository.setOnboarded(true);
-  }
-
-  Future<void> setCheckForUpdates(bool value) async {
-    if (value == _checkForUpdates) return;
-    _checkForUpdates = value;
-    notifyListeners();
-    await _repository.setCheckForUpdates(value);
   }
 }

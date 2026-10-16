@@ -45,9 +45,6 @@ dependencies:
   path_provider: ^2.1.6
   stylish_bottom_bar: ^1.1.1
   package_info_plus: ^10.2.1
-  http: ^1.6.0
-  url_launcher: ^6.3.2
-  open_filex: ^4.7.0
 
 dev_dependencies:
   flutter_test:
