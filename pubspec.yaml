@@ -45,6 +45,7 @@ dependencies:
   path_provider: ^2.1.6
   stylish_bottom_bar: ^1.1.1
   package_info_plus: ^10.2.1
+  in_app_update: ^4.2.5
 
 dev_dependencies:
   flutter_test:

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:in_app_update/in_app_update.dart';
 import 'package:provider/provider.dart';
 
 import 'core/theme/app_theme.dart';
@@ -46,6 +47,49 @@ class AppShell extends StatefulWidget {
 
 class _AppShellState extends State<AppShell> {
   int _index = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkForUpdate();
+  }
+
+  /// Offers a newer Play Store release through Play's own in-app update
+  /// prompt, the only self-update route Play policy allows. Play downloads
+  /// in the background; the app only asks to restart once it is ready.
+  ///
+  /// Silent on failure: outside a Play install (debug, sideload) the API
+  /// always throws, and an offline tracker should never nag about it.
+  Future<void> _checkForUpdate() async {
+    try {
+      final AppUpdateInfo info = await InAppUpdate.checkForUpdate();
+      // Downloaded on an earlier launch but never installed.
+      if (info.installStatus == InstallStatus.downloaded) {
+        _offerRestart();
+        return;
+      }
+      if (info.updateAvailability != UpdateAvailability.updateAvailable ||
+          !info.flexibleUpdateAllowed) {
+        return;
+      }
+      final AppUpdateResult result = await InAppUpdate.startFlexibleUpdate();
+      if (result == AppUpdateResult.success) _offerRestart();
+    } catch (_) {}
+  }
+
+  void _offerRestart() {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Update downloaded.'),
+        duration: Duration(days: 1),
+        action: SnackBarAction(
+          label: 'Restart',
+          onPressed: InAppUpdate.completeFlexibleUpdate,
+        ),
+      ),
+    );
+  }
 
   /// Jumps to Home showing the given day, used when a history row is tapped.
   Future<void> _openDay(String date) async {
